@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
   sectionContainer: {
     marginTop: 32,
     paddingHorizontal: 24,
+    backgroundColor: 'yellow',
   },
   sectionTitle: {
     fontSize: 24,
