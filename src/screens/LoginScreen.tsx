@@ -1,68 +1,34 @@
-import React, { useState } from "react";
-import { View, Alert, Text, TextInput, Button, StyleSheet } from "react-native";
+import React, { useState } from 'react';
+import { View, TextInput, Button, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigation';
 
-export default function LoginScreen() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
+type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            Alert.alert('validation', "Please fill in all fields");
-            return;
-        }
-        setLoading(true);
-        try {
-            const response = await fetch("some api endpoint", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
+const LoginScreen = ({ navigation }: Props) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-            const data = await response.json();
-
-            if (response.ok) {
-                Alert.alert('Sucess', 'Login successful');
-                // save token to async storage
-                // navigate to home screen
-            }
-            else {
-                Alert.alert('login failed', data.message)
-            }
-        }
-        catch (error) {
-            Alert.alert('Error', 'An error occured. with backend api...');
-        }
-        finally {
-            setLoading(false);
-        }
-
+  const handleLogin = async () => {
+    const storedUser = await AsyncStorage.getItem('user');
+    if (!storedUser) return Alert.alert('No user found');
+    const parsed = JSON.parse(storedUser);
+    if (parsed?.email === email && parsed?.password === password) {
+      navigation.navigate('Home');
+    } else {
+      Alert.alert('Invalid credentials');
     }
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Email"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Password"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-            />
-            <Button title={loading ? 'Logging in...' : 'Login'} onPress={handleLogin} disabled={loading} />
-        </View>
-    )
+  };
+
+  return (
+    <View>
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} />
+      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+      <Button title="Login" onPress={handleLogin} />
+      <Button title="Sign Up" onPress={() => navigation.navigate('Signup')} />
+    </View>
+  );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, justifyContent: 'center' },
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-    input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 12 },
-});
+export default LoginScreen;
